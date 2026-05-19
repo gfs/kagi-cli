@@ -889,6 +889,77 @@ fn mcp_tools_list_includes_news() {
 }
 
 #[test]
+fn mcp_tools_list_advertises_input_schemas() {
+    let tempdir = TempDir::new().expect("tempdir");
+    let output = run_kagi_with_stdin(
+        &["mcp"],
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}\n",
+        &[],
+        tempdir.path(),
+    );
+
+    assert_success(&output);
+    let response: Value = serde_json::from_slice(&output.stdout).expect("mcp json parses");
+    let tools = response["result"]["tools"].as_array().expect("tools array");
+
+    let find = |name: &str| -> Value {
+        tools
+            .iter()
+            .find(|tool| tool["name"] == name)
+            .unwrap_or_else(|| panic!("missing tool {name} in {tools:?}"))
+            .clone()
+    };
+
+    let expectations: &[(&str, &[&str], &[&str])] = &[
+        ("kagi_search", &["query"], &["query"]),
+        ("kagi_summarize", &["url", "text"], &[]),
+        ("kagi_quick", &["query"], &["query"]),
+        ("kagi_news", &["category"], &[]),
+        ("kagi_news_search", &["query"], &["query"]),
+    ];
+
+    for (name, props, required) in expectations {
+        let tool = find(name);
+        let schema = &tool["inputSchema"];
+        assert_eq!(schema["type"], "object", "{name} schema type");
+        let properties = schema["properties"]
+            .as_object()
+            .unwrap_or_else(|| panic!("{name} missing properties: {tool}"));
+        for prop in *props {
+            assert!(
+                properties.contains_key(*prop),
+                "{name} missing property {prop}: {tool}"
+            );
+            assert_eq!(
+                properties[*prop]["type"], "string",
+                "{name}.{prop} should be a string"
+            );
+        }
+        let required_list = schema
+            .get("required")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let required_names: Vec<&str> = required_list
+            .iter()
+            .filter_map(Value::as_str)
+            .collect();
+        for req in *required {
+            assert!(
+                required_names.contains(req),
+                "{name} should require {req}, got {required_names:?}"
+            );
+        }
+        if required.is_empty() {
+            assert!(
+                required_list.is_empty(),
+                "{name} should declare no required params, got {required_names:?}"
+            );
+        }
+    }
+}
+
+#[test]
 fn mcp_news_tool_call_returns_stories() {
     let server = MockServer::start();
     let _latest = server.mock(|when, then| {
