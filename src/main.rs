@@ -2068,11 +2068,60 @@ async fn run_mcp(args: McpArgs, profile: Option<&str>) -> Result<(), KagiError> 
                 "id": id,
                 "result": {
                     "tools": [
-                        {"name": "kagi_search", "description": "Search Kagi", "inputSchema": {"type": "object"}},
-                        {"name": "kagi_summarize", "description": "Summarize a URL or text", "inputSchema": {"type": "object"}},
-                        {"name": "kagi_quick", "description": "Get a Kagi Quick Answer", "inputSchema": {"type": "object"}},
-                        {"name": "kagi_news", "description": "Fetch Kagi News stories for a category", "inputSchema": {"type": "object"}},
-                        {"name": "kagi_news_search", "description": "Search the News tab of kagi.com (clusters of articles)", "inputSchema": {"type": "object"}}
+                        {
+                            "name": "kagi_search",
+                            "description": "Search the web using Kagi. Returns results with titles, URLs, and snippets.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {"type": "string", "description": "The search query"}
+                                },
+                                "required": ["query"]
+                            }
+                        },
+                        {
+                            "name": "kagi_summarize",
+                            "description": "Summarize a web page URL or text using Kagi's summarizer.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "url": {"type": "string", "description": "URL to summarize"},
+                                    "text": {"type": "string", "description": "Text to summarize (alternative to url)"}
+                                }
+                            }
+                        },
+                        {
+                            "name": "kagi_quick",
+                            "description": "Get a quick, concise answer to a question using Kagi Quick Answer.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {"type": "string", "description": "The question to answer"}
+                                },
+                                "required": ["query"]
+                            }
+                        },
+                        {
+                            "name": "kagi_news",
+                            "description": "Fetch latest Kagi News stories for a category.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "category": {"type": "string", "description": "News category (e.g. 'technology', 'science', 'world')"}
+                                }
+                            }
+                        },
+                        {
+                            "name": "kagi_news_search",
+                            "description": "Search news articles on kagi.com. Returns clusters of related articles.",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {"type": "string", "description": "News search query"}
+                                },
+                                "required": ["query"]
+                            }
+                        }
                     ]
                 }
             }),
