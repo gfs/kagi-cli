@@ -940,10 +940,7 @@ fn mcp_tools_list_advertises_input_schemas() {
             .and_then(Value::as_array)
             .cloned()
             .unwrap_or_default();
-        let required_names: Vec<&str> = required_list
-            .iter()
-            .filter_map(Value::as_str)
-            .collect();
+        let required_names: Vec<&str> = required_list.iter().filter_map(Value::as_str).collect();
         for req in *required {
             assert!(
                 required_names.contains(req),
